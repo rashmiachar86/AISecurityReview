@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #C0392B;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #C0392B; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 10pt 18pt 10pt 18pt; gap: 12pt;
+}
+.left-col { flex: 1.1; display: flex; flex-direction: column; gap: 6pt; }
+.right-col { flex: 0.9; display: flex; flex-direction: column; gap: 6pt; }
+.nhi-types-row {
+  display: flex; flex-direction: row; gap: 6pt;
+}
+.nhi-type {
+  flex: 1; background: #152232; border-top: 3pt solid #1B6CA8;
+  padding: 5pt 7pt; border-radius: 3pt;
+}
+.nhi-type p { color: #FFFFFF; font-size: 7.5pt; font-weight: bold; margin-bottom: 2pt; }
+.nhi-type ul { color: #AAB7B8; font-size: 7pt; padding-left: 11pt; }
+.nhi-type li { margin-bottom: 2pt; }
+.section-label {
+  color: #1B6CA8; font-size: 7.5pt; font-weight: bold;
+  letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 3pt;
+}
+.desc-box {
+  background: #1B2A3B; padding: 7pt 10pt; border-radius: 3pt;
+  border-left: 3pt solid #1B6CA8;
+}
+.desc-box p { color: #AAB7B8; font-size: 8pt; line-height: 1.4; }
+.red-box {
+  background: #2A1515; border-left: 4pt solid #C0392B; padding: 7pt 10pt; border-radius: 3pt;
+}
+.red-box p { color: #E8BABA; font-size: 8pt; line-height: 1.4; }
+.red-box strong { color: #C0392B; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">NHI Attack Surface</p>
+  <p class="header-title">What Are Non-Human Identities?</p>
+</div>
+<div class="body-area">
+  <div class="left-col">
+    <p class="section-label">NHI Types Across the Pipeline</p>
+    <div class="nhi-types-row">
+      <div class="nhi-type">
+        <p>Developer Tokens</p>
+        <ul>
+          <li>GitHub / GitLab PATs</li>
+          <li>API access tokens</li>
+          <li>SSH keys</li>
+        </ul>
+      </div>
+      <div class="nhi-type">
+        <p>CI/CD Credentials</p>
+        <ul>
+          <li>Build service accounts</li>
+          <li>Pipeline secrets</li>
+          <li>Signing certificates</li>
+        </ul>
+      </div>
+    </div>
+    <div class="nhi-types-row">
+      <div class="nhi-type">
+        <p>Cloud Identities</p>
+        <ul>
+          <li>AWS IAM roles/keys</li>
+          <li>Azure Service Principals</li>
+          <li>GCP Service Accounts</li>
+        </ul>
+      </div>
+      <div class="nhi-type">
+        <p>Runtime Credentials</p>
+        <ul>
+          <li>Kubernetes SvcAccts</li>
+          <li>DB connection strings</li>
+          <li>Vault / Secrets Manager</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="right-col">
+    <p class="section-label">Why NHIs Are Dangerous</p>
+    <div class="desc-box">
+      <p>NHIs span the entire software lifecycle — from developer commits, through CI/CD pipelines, artifact storage, to production runtime. Each stage introduces unique credential exposure risks.</p>
+    </div>
+    <div class="red-box">
+      <p><strong>Critical Gap:</strong> NHIs are often long-lived, over-privileged, and lack governance controls applied to human identities. They are prime targets because they are harder to detect when compromised.</p>
+    </div>
+    <div class="red-box">
+      <p><strong>Scale:</strong> Enterprises typically have 10-100x more NHIs than human identities, yet NHI security posture lags significantly behind human identity management maturity.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

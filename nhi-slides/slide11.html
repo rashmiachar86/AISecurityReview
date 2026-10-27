@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #1B6CA8;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #1B6CA8; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 9pt 16pt 8pt 16pt; gap: 8pt;
+}
+.actor-card {
+  flex: 1; background: #152232; border-radius: 4pt; padding: 8pt 9pt;
+  display: flex; flex-direction: column; gap: 5pt;
+}
+.actor-card-red { flex: 1; background: #2A1515; border-radius: 4pt; padding: 8pt 9pt; display: flex; flex-direction: column; gap: 5pt; }
+.actor-type { font-size: 8pt; font-weight: bold; letter-spacing: 1pt; text-transform: uppercase; margin-bottom: 2pt; }
+.blue { color: #1B6CA8; }
+.red { color: #C0392B; }
+.amber { color: #E8A020; }
+.actor-motivation { color: #AAB7B8; font-size: 8pt; font-style: italic; margin-bottom: 4pt; }
+.tactic-label { color: #556270; font-size: 7pt; letter-spacing: 0.5pt; text-transform: uppercase; font-weight: bold; }
+.tactic-list ul { color: #ECEFF1; font-size: 8pt; padding-left: 12pt; }
+.tactic-list li { margin-bottom: 2pt; }
+.example-strip { background: #1B2A3B; padding: 5pt 8pt; border-radius: 2pt; margin-top: 3pt; }
+.example-strip p { color: #556270; font-size: 7.5pt; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Threat Intelligence</p>
+  <p class="header-title">Threat Actors &amp; Their Tactics (TTPs)</p>
+</div>
+<div class="body-area">
+  <div class="actor-card">
+    <p class="actor-type blue">Nation-State APTs</p>
+    <p class="actor-motivation">Espionage, IP theft, strategic advantage</p>
+    <p class="tactic-label">Tactics</p>
+    <div class="tactic-list">
+      <ul>
+        <li>Long-term persistent access via NHIs</li>
+        <li>Build system compromise</li>
+        <li>Living-off-the-land with legitimate creds</li>
+        <li>Sophisticated lateral movement</li>
+      </ul>
+    </div>
+    <div class="example-strip"><p>APT29 — SolarWinds · APT41 — software vendors · Lazarus — crypto via supply chain</p></div>
+  </div>
+  <div class="actor-card-red">
+    <p class="actor-type red">Cybercriminal Groups</p>
+    <p class="actor-motivation">Financial gain, ransomware, cryptomining</p>
+    <p class="tactic-label">Tactics</p>
+    <div class="tactic-list">
+      <ul>
+        <li>Automated scanning for exposed credentials</li>
+        <li>GitHub/GitLab credential scraping</li>
+        <li>Cryptomining via stolen cloud keys</li>
+        <li>Ransomware via compromised CI/CD</li>
+      </ul>
+    </div>
+    <div class="example-strip"><p>TeamTNT — cloud cred theft · Rocke — container escape · Various — CI/CD ransomware</p></div>
+  </div>
+  <div class="actor-card">
+    <p class="actor-type amber">Insider Threats</p>
+    <p class="actor-motivation">Revenge, financial gain, negligence</p>
+    <p class="tactic-label">Tactics</p>
+    <div class="tactic-list">
+      <ul>
+        <li>Abuse of legitimate NHI access</li>
+        <li>Backdoor service account creation</li>
+        <li>Credential theft before departure</li>
+        <li>Exfiltration using authorized creds</li>
+      </ul>
+    </div>
+    <div class="example-strip"><p>Privileged access to CI/CD · API key gen for exfil · Shared credentials to third parties</p></div>
+  </div>
+  <div class="actor-card-red">
+    <p class="actor-type red">Opportunistic Attackers</p>
+    <p class="actor-motivation">Easy targets, credential collection</p>
+    <p class="tactic-label">Tactics</p>
+    <div class="tactic-list">
+      <ul>
+        <li>Mass scanning for exposed secrets</li>
+        <li>Automated public repo scanning</li>
+        <li>Docker Hub credential mining</li>
+        <li>Default credential exploitation</li>
+      </ul>
+    </div>
+    <div class="example-strip"><p>GitHub secret scanning bots · Public S3 enumeration · Shodan/Censys for exposed services</p></div>
+  </div>
+</div>
+</body>
+</html>

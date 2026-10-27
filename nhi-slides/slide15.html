@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #1B6CA8;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #1B6CA8; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 9pt 18pt 6pt 18pt; gap: 12pt;
+}
+.left-col { flex: 1; display: flex; flex-direction: column; gap: 6pt; }
+.right-col { flex: 1; display: flex; flex-direction: column; gap: 6pt; }
+.section-label {
+  color: #1B6CA8; font-size: 7.5pt; font-weight: bold;
+  letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 2pt;
+}
+.section-label-red {
+  color: #C0392B; font-size: 7.5pt; font-weight: bold;
+  letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 2pt;
+}
+.reco-row { display: flex; flex-direction: row; gap: 6pt; align-items: flex-start; }
+.reco-num { color: #1B6CA8; font-size: 14pt; font-weight: bold; min-width: 22pt; }
+.reco-text { flex: 1; }
+.reco-text p:first-child { color: #FFFFFF; font-size: 8pt; font-weight: bold; }
+.reco-text p:last-child { color: #AAB7B8; font-size: 7.5pt; line-height: 1.35; margin-top: 2pt; }
+.reco-num-red { color: #C0392B; font-size: 14pt; font-weight: bold; min-width: 22pt; }
+.bottom-bar {
+  background: #152232; border-top: 2pt solid #1B6CA8;
+  padding: 6pt 18pt; display: flex; flex-direction: row; gap: 16pt; align-items: center;
+}
+.bottom-bar p { color: #556270; font-size: 7.5pt; }
+.bottom-bar strong { color: #AAB7B8; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Summary</p>
+  <p class="header-title">Key Takeaways &amp; Recommendations</p>
+</div>
+<div class="body-area">
+  <div class="left-col">
+    <p class="section-label">Immediate Actions</p>
+    <div class="reco-row">
+      <p class="reco-num">01</p>
+      <div class="reco-text">
+        <p>Inventory All NHIs</p>
+        <p>Audit every service account, API token, and machine credential across all pipeline stages.</p>
+      </div>
+    </div>
+    <div class="reco-row">
+      <p class="reco-num">02</p>
+      <div class="reco-text">
+        <p>Enforce Least Privilege</p>
+        <p>Scope all NHI credentials to minimum required permissions; eliminate standing over-privileged accounts.</p>
+      </div>
+    </div>
+    <div class="reco-row">
+      <p class="reco-num">03</p>
+      <div class="reco-text">
+        <p>Deploy Secret Scanning</p>
+        <p>Implement pre-commit hooks + CI/CD scanning for secrets across all repositories and pipelines.</p>
+      </div>
+    </div>
+    <div class="reco-row">
+      <p class="reco-num">04</p>
+      <div class="reco-text">
+        <p>Use Short-Lived Credentials</p>
+        <p>Replace long-lived static credentials with OIDC-based, ephemeral tokens wherever possible.</p>
+      </div>
+    </div>
+  </div>
+  <div class="right-col">
+    <p class="section-label-red">Strategic Initiatives</p>
+    <div class="reco-row">
+      <p class="reco-num-red">05</p>
+      <div class="reco-text">
+        <p>Adopt SLSA Framework</p>
+        <p>Implement build provenance, attestation, and verification for all software artifacts.</p>
+      </div>
+    </div>
+    <div class="reco-row">
+      <p class="reco-num-red">06</p>
+      <div class="reco-text">
+        <p>Centralize Secrets Management</p>
+        <p>Deploy HashiCorp Vault or cloud-native secrets managers; eliminate secrets in config files and env vars.</p>
+      </div>
+    </div>
+    <div class="reco-row">
+      <p class="reco-num-red">07</p>
+      <div class="reco-text">
+        <p>Monitor NHI Behavior</p>
+        <p>Implement anomaly detection on NHI usage patterns — unusual access times, volumes, or destinations.</p>
+      </div>
+    </div>
+    <div class="reco-row">
+      <p class="reco-num-red">08</p>
+      <div class="reco-text">
+        <p>Generate &amp; Monitor SBOMs</p>
+        <p>Use Syft/CycloneDX for every release; continuously monitor dependencies for compromise signals.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="bottom-bar">
+  <p><strong>Further Reading:</strong> "Securing the Software Supply Chain" — CISA · "SLSA Framework" — OpenSSF · "Non-Human Identity Security Report" — CyberArk</p>
+</div>
+</body>
+</html>

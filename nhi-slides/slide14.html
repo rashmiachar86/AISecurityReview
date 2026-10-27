@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #1B6CA8;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #1B6CA8; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 9pt 18pt 8pt 18pt; gap: 12pt;
+}
+.left-col { flex: 1; display: flex; flex-direction: column; gap: 7pt; }
+.right-col { flex: 1; display: flex; flex-direction: column; gap: 7pt; }
+.section-label {
+  color: #1B6CA8; font-size: 7.5pt; font-weight: bold;
+  letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 2pt;
+}
+.framework-box { background: #152232; border-left: 4pt solid #1B6CA8; padding: 7pt 10pt; border-radius: 3pt; }
+.framework-box ul { color: #AAB7B8; font-size: 8pt; padding-left: 12pt; }
+.framework-box li { margin-bottom: 3pt; }
+.framework-box li strong { color: #FFFFFF; }
+.tool-category { background: #1B2A3B; padding: 6pt 9pt; border-radius: 3pt; }
+.tool-category p:first-child { color: #1B6CA8; font-size: 7.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1pt; margin-bottom: 2pt; }
+.tool-category p:last-child { color: #AAB7B8; font-size: 8pt; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Defense &amp; Standards</p>
+  <p class="header-title">Frameworks, Tools &amp; Standards</p>
+</div>
+<div class="body-area">
+  <div class="left-col">
+    <p class="section-label">Frameworks &amp; Standards</p>
+    <div class="framework-box">
+      <ul>
+        <li><strong>SLSA</strong> — Supply-chain Levels for Software Artifacts: provenance and build integrity assurance</li>
+        <li><strong>NIST CSF</strong> — Cybersecurity Framework: identify, protect, detect, respond, recover</li>
+        <li><strong>CIS Controls</strong> — Prioritized security controls including identity and access management</li>
+        <li><strong>OWASP CI/CD Top 10</strong> — Specific risks: insufficient flow control, inadequate identity controls, insecure third-party code</li>
+      </ul>
+    </div>
+  </div>
+  <div class="right-col">
+    <p class="section-label">Key Security Tools</p>
+    <div class="tool-category">
+      <p>Secret Scanning</p>
+      <p>GitLeaks, TruffleHog, git-secrets, GitHub Secret Scanning, Gitleaks Action</p>
+    </div>
+    <div class="tool-category">
+      <p>Secrets Management</p>
+      <p>HashiCorp Vault, AWS Secrets Manager, Azure Key Vault, GCP Secret Manager</p>
+    </div>
+    <div class="tool-category">
+      <p>Container Security</p>
+      <p>Trivy, Grype, Clair, Anchore Engine — image scanning and vulnerability detection</p>
+    </div>
+    <div class="tool-category">
+      <p>SBOM &amp; Build Attestation</p>
+      <p>Syft, CycloneDX, SPDX for SBOM · in-toto, Sigstore, SLSA for provenance &amp; signing</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

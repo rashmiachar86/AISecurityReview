@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #C0392B;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #C0392B; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 9pt 18pt 8pt 18pt; gap: 12pt;
+}
+.left-col { flex: 1.1; display: flex; flex-direction: column; gap: 6pt; }
+.right-col { flex: 0.9; display: flex; flex-direction: column; gap: 6pt; }
+.section-label {
+  color: #C0392B; font-size: 7.5pt; font-weight: bold;
+  letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 2pt;
+}
+.section-label-blue {
+  color: #1B6CA8; font-size: 7.5pt; font-weight: bold;
+  letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 2pt;
+}
+.nhi-list { background: #152232; border-left: 4pt solid #1B6CA8; padding: 6pt 10pt; border-radius: 3pt; }
+.nhi-list ul { color: #AAB7B8; font-size: 8pt; padding-left: 12pt; }
+.nhi-list li { margin-bottom: 2pt; }
+.vuln-box { background: #1B2A3B; border-left: 4pt solid #C0392B; padding: 6pt 10pt; border-radius: 3pt; }
+.vuln-box ul { color: #E8BABA; font-size: 8pt; padding-left: 12pt; }
+.vuln-box li { margin-bottom: 2pt; }
+.incident-box {
+  background: #2A1515; padding: 7pt 10pt; border-radius: 3pt; border-left: 3pt solid #C0392B;
+}
+.incident-box p { color: #AAB7B8; font-size: 8pt; line-height: 1.4; }
+.incident-box strong { color: #C0392B; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Stage 3 Deep-Dive</p>
+  <p class="header-title">Build &amp; CI/CD Pipeline</p>
+</div>
+<div class="body-area">
+  <div class="left-col">
+    <p class="section-label-blue">NHI Types</p>
+    <div class="nhi-list">
+      <ul>
+        <li>CI/CD service accounts (Jenkins, GitHub Actions, GitLab CI)</li>
+        <li>Cloud provider access keys (AWS, Azure, GCP)</li>
+        <li>Container registry credentials</li>
+        <li>Artifact signing certificates</li>
+        <li>Deployment keys</li>
+      </ul>
+    </div>
+    <p class="section-label">Critical Vulnerabilities</p>
+    <div class="vuln-box">
+      <ul>
+        <li>Over-privileged CI/CD service accounts</li>
+        <li>Long-lived credentials in pipeline configs</li>
+        <li>Secrets exposed in build logs</li>
+        <li>Third-party GitHub Actions with excessive permissions</li>
+        <li>Unencrypted secrets in pipeline definitions</li>
+      </ul>
+    </div>
+  </div>
+  <div class="right-col">
+    <p class="section-label">Real-World Incidents</p>
+    <div class="incident-box">
+      <p><strong>SolarWinds (2020)</strong> — Build system compromise injected malicious code into Orion updates; 18,000+ organizations impacted.</p>
+    </div>
+    <div class="incident-box">
+      <p><strong>Codecov (2021)</strong> — Bash Uploader script modified to exfiltrate CI/CD environment variables for 2+ months.</p>
+    </div>
+    <div class="incident-box">
+      <p><strong>Travis CI (2021)</strong> — Secrets exposed in build logs, accessible to unauthorized users.</p>
+    </div>
+    <div class="incident-box">
+      <p><strong>CircleCI (2023)</strong> — Customer secrets and tokens compromised, requiring mass credential rotation.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

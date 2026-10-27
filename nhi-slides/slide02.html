@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #1B6CA8;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #1B6CA8; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 8pt 18pt 8pt 18pt; gap: 12pt;
+}
+.col { flex: 1; display: flex; flex-direction: column; gap: 6pt; }
+.stat-box {
+  background: #1B2A3B; border-left: 5pt solid #1B6CA8;
+  padding: 6pt 10pt; border-radius: 4pt;
+}
+.stat-num { color: #1B6CA8; font-size: 19pt; font-weight: bold; }
+.stat-label { color: #AAB7B8; font-size: 8pt; }
+.stat-box-red { background: #1B2A3B; border-left: 5pt solid #C0392B; padding: 6pt 10pt; border-radius: 4pt; }
+.stat-num-red { color: #C0392B; font-size: 19pt; font-weight: bold; }
+.text-box { background: #152232; padding: 6pt 10pt; border-radius: 4pt; }
+.text-box p { color: #ECEFF1; font-size: 8.5pt; line-height: 1.4; }
+.highlight { color: #1B6CA8; font-weight: bold; }
+.highlight-red { color: #C0392B; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Overview</p>
+  <p class="header-title">Executive Summary</p>
+</div>
+<div class="body-area">
+  <div class="col">
+    <div class="stat-box">
+      <p class="stat-num">10–100x</p>
+      <p class="stat-label">More NHIs than human identities in enterprises</p>
+    </div>
+    <div class="stat-box-red">
+      <p class="stat-num-red">$100M+</p>
+      <p class="stat-label">Estimated damages in single supply chain breaches</p>
+    </div>
+    <div class="stat-box">
+      <p class="stat-num">18,000+</p>
+      <p class="stat-label">Organizations impacted by SolarWinds attack alone</p>
+    </div>
+  </div>
+  <div class="col">
+    <div class="text-box">
+      <p><span class="highlight">Non-Human Identities (NHIs)</span> — service accounts, API tokens, CI/CD credentials, cloud IAM roles — represent the most under-managed attack surface in software supply chains.</p>
+    </div>
+    <div class="text-box">
+      <p>NHIs typically hold <span class="highlight-red">elevated privileges</span>, rotate infrequently, and proliferate across every pipeline stage: source code, build, artifact storage, and production runtime.</p>
+    </div>
+    <div class="text-box">
+      <p>Attackers — from nation-state APTs to opportunistic criminals — specifically <span class="highlight">target NHI credentials</span> to gain persistent, high-privilege access without triggering user-based detection.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

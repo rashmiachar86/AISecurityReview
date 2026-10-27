@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #1B6CA8;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #1B6CA8; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 9pt 16pt 8pt 16pt; gap: 8pt;
+}
+.pattern-col { flex: 1; display: flex; flex-direction: column; gap: 7pt; }
+.pattern {
+  flex: 1; background: #152232; border-radius: 3pt; padding: 7pt 9pt;
+  border-left: 3pt solid #1B6CA8; display: flex; flex-direction: column; gap: 3pt;
+}
+.pattern-red { flex: 1; background: #2A1515; border-radius: 3pt; padding: 7pt 9pt; border-left: 3pt solid #C0392B; display: flex; flex-direction: column; gap: 3pt; }
+.pattern-name { color: #FFFFFF; font-size: 8pt; font-weight: bold; }
+.pattern-desc { color: #AAB7B8; font-size: 7pt; line-height: 1.35; flex: 1; }
+.pattern-detect { background: #1B2A3B; padding: 3pt 6pt; border-radius: 2pt; }
+.pattern-detect p { color: #6B9EC8; font-size: 6.5pt; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Credential Exposure</p>
+  <p class="header-title">Secret Sprawl &amp; Exposure Patterns</p>
+</div>
+<div class="body-area">
+  <div class="pattern-col">
+    <div class="pattern">
+      <p class="pattern-name">Git History Exposure</p>
+      <p class="pattern-desc">Secrets committed to .env files, config, test files, or IaC templates remain in git history even after deletion.</p>
+      <div class="pattern-detect"><p>Tools: GitLeaks, TruffleHog, git-secrets, pre-commit hooks, GitHub Secret Scanning</p></div>
+    </div>
+    <div class="pattern-red">
+      <p class="pattern-name">Container Image Secrets</p>
+      <p class="pattern-desc">Credentials embedded in container images via ENV vars in Dockerfile, copied config files, or unremediated build-time secrets in image layers.</p>
+      <div class="pattern-detect"><p>Tools: Trivy, Grype, Clair — layer-by-layer analysis; registry scanning; admission controllers</p></div>
+    </div>
+  </div>
+  <div class="pattern-col">
+    <div class="pattern-red">
+      <p class="pattern-name">Cloud Metadata SSRF</p>
+      <p class="pattern-desc">SSRF vulnerabilities in web apps used to query AWS IMDS, Azure IMDS, or GCP Metadata Server for short-lived IAM credentials.</p>
+      <div class="pattern-detect"><p>Mitigate: IMDSv2 (session-based), network policies, least-privilege IAM roles, app-level SSRF protection</p></div>
+    </div>
+    <div class="pattern">
+      <p class="pattern-name">Configuration File Exposure</p>
+      <p class="pattern-desc">Secrets in config.yaml, settings.json, .env files in production, or database connection strings accessible to unauthorized parties.</p>
+      <div class="pattern-detect"><p>Remediation: Secrets management systems (Vault, AWS SM), encrypted configs, access control enforcement</p></div>
+    </div>
+  </div>
+  <div class="pattern-col">
+    <div class="pattern">
+      <p class="pattern-name">Log File Leakage</p>
+      <p class="pattern-desc">API keys, tokens, and connection strings inadvertently logged to app logs, web server logs, or error messages — then accessible via log aggregation platforms.</p>
+      <div class="pattern-detect"><p>Remediation: Log sanitization, secret redaction, structured logging patterns, developer guidelines</p></div>
+    </div>
+    <div class="pattern-red">
+      <p class="pattern-name">Private Registry Credential Sprawl</p>
+      <p class="pattern-desc">Package registry tokens (npm, PyPI, Maven) stored in multiple places — CI configs, developer machines, shared secrets — without rotation policies.</p>
+      <div class="pattern-detect"><p>Remediation: Centralized secrets management, short-lived tokens, SBOM signing and verification</p></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

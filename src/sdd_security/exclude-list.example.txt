@@ -1,0 +1,12 @@
+# One pattern per line; blank lines and '#' comments are ignored. Case-insensitive.
+# Use with:  scan.py <target> --exclude-list exclude-list.txt   (add --exclude-tests for test files)
+#
+# dir/          any directory with that name or repo-relative path
+# path/*.ext    glob relative to the repo root
+# *.ext / name  basename glob, or any path segment
+#
+e2e-ui/
+scripts/ci/nomad/
+docs/legacy/
+.github/workflows/test-*.yml
+*_gen.go

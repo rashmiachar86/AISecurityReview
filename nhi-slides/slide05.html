@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #1B6CA8;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #1B6CA8; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 9pt 18pt 8pt 18pt; gap: 12pt;
+}
+.left-col { flex: 1; display: flex; flex-direction: column; gap: 6pt; }
+.right-col { flex: 1; display: flex; flex-direction: column; gap: 6pt; }
+.section-label {
+  color: #1B6CA8; font-size: 7.5pt; font-weight: bold;
+  letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 2pt;
+}
+.nhi-list {
+  background: #152232; border-left: 4pt solid #1B6CA8;
+  padding: 6pt 10pt; border-radius: 3pt;
+}
+.nhi-list ul { color: #AAB7B8; font-size: 8pt; padding-left: 12pt; }
+.nhi-list li { margin-bottom: 2pt; }
+.vuln-box {
+  background: #1B2A3B; border-left: 4pt solid #C0392B;
+  padding: 6pt 10pt; border-radius: 3pt;
+}
+.vuln-box ul { color: #E8BABA; font-size: 8pt; padding-left: 12pt; }
+.vuln-box li { margin-bottom: 2pt; }
+.attack-box {
+  background: #2A1515; padding: 7pt 10pt; border-radius: 3pt; border-top: 2pt solid #C0392B;
+}
+.attack-box p { color: #AAB7B8; font-size: 8pt; line-height: 1.4; }
+.attack-box strong { color: #FFFFFF; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Stage 1 Deep-Dive</p>
+  <p class="header-title">Source Code Management</p>
+</div>
+<div class="body-area">
+  <div class="left-col">
+    <p class="section-label">NHI Types</p>
+    <div class="nhi-list">
+      <ul>
+        <li>Developer API tokens (GitHub, GitLab, Bitbucket)</li>
+        <li>Git SSH keys</li>
+        <li>Code signing certificates</li>
+        <li>Repository webhook credentials</li>
+        <li>Personal Access Tokens (PATs)</li>
+      </ul>
+    </div>
+    <p class="section-label">Key Vulnerabilities</p>
+    <div class="vuln-box">
+      <ul>
+        <li>Hardcoded secrets in source code</li>
+        <li>Credentials in version control history</li>
+        <li>Insufficient branch protection</li>
+        <li>Compromised developer workstations</li>
+        <li>Exposed PATs in public repos</li>
+      </ul>
+    </div>
+  </div>
+  <div class="right-col">
+    <p class="section-label">Attack Scenarios</p>
+    <div class="attack-box">
+      <p><strong>Token Compromise:</strong> Attacker scans public repos for leaked tokens, gaining repo write access to inject malicious code.</p>
+    </div>
+    <div class="attack-box">
+      <p><strong>Git History Mining:</strong> Even after removal, credentials in git history remain extractable using tools like TruffleHog or GitLeaks.</p>
+    </div>
+    <div class="attack-box">
+      <p><strong>PR Injection:</strong> Fork + pull request triggers CI pipeline with access to secrets, enabling exfiltration via malicious code in PR.</p>
+    </div>
+    <div class="attack-box">
+      <p><strong>Detection Tools:</strong> GitLeaks, TruffleHog, git-secrets, GitHub Secret Scanning, pre-commit hooks.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

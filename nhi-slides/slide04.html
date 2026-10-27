@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 14pt 30pt 12pt 30pt;
+  border-bottom: 3pt solid #1B6CA8;
+}
+.header-title { color: #FFFFFF; font-size: 20pt; font-weight: bold; }
+.header-sub { color: #1B6CA8; font-size: 10pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 14pt 20pt; gap: 8pt; align-items: stretch;
+}
+.stage {
+  flex: 1; display: flex; flex-direction: column; gap: 5pt;
+  background: #152232; border-radius: 4pt; padding: 10pt 10pt; border-top: 3pt solid #1B6CA8;
+}
+.stage-num { color: #1B6CA8; font-size: 18pt; font-weight: bold; }
+.stage-name { color: #FFFFFF; font-size: 9pt; font-weight: bold; }
+.stage-nhi { color: #AAB7B8; font-size: 8pt; line-height: 1.4; }
+.stage-risk {
+  margin-top: 4pt; background: #1B2A3B; border-left: 3pt solid #C0392B;
+  padding: 4pt 7pt; border-radius: 2pt;
+}
+.stage-risk p { color: #E8BABA; font-size: 7.5pt; }
+.arrow {
+  display: flex; align-items: center; justify-content: center; padding-top: 30pt;
+}
+.arrow p { color: #1B6CA8; font-size: 16pt; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Supply Chain</p>
+  <p class="header-title">5-Stage Supply Chain Attack Surface</p>
+</div>
+<div class="body-area">
+  <div class="stage">
+    <p class="stage-num">01</p>
+    <p class="stage-name">Source Code Mgmt</p>
+    <p class="stage-nhi">GitHub/GitLab tokens, SSH keys, code signing certs, webhook credentials</p>
+    <div class="stage-risk"><p>Hardcoded secrets, PAT leaks, git history mining</p></div>
+  </div>
+  <div class="arrow"><p>&#8250;</p></div>
+  <div class="stage">
+    <p class="stage-num">02</p>
+    <p class="stage-name">Dependency Mgmt</p>
+    <p class="stage-nhi">npm/PyPI registry tokens, SBOM signing keys, artifact repo keys</p>
+    <div class="stage-risk"><p>Package hijacking, dependency confusion, malicious payloads</p></div>
+  </div>
+  <div class="arrow"><p>&#8250;</p></div>
+  <div class="stage">
+    <p class="stage-num">03</p>
+    <p class="stage-name">Build &amp; CI/CD</p>
+    <p class="stage-nhi">Jenkins/GHA service accounts, cloud keys, container registry creds</p>
+    <div class="stage-risk"><p>Over-privileged pipelines, secrets in build logs, 3rd-party actions</p></div>
+  </div>
+  <div class="arrow"><p>&#8250;</p></div>
+  <div class="stage">
+    <p class="stage-num">04</p>
+    <p class="stage-name">Artifact Storage</p>
+    <p class="stage-nhi">Container registry creds, image signing keys, CDN/S3 access keys</p>
+    <div class="stage-risk"><p>Embedded secrets in images, unverified signatures</p></div>
+  </div>
+  <div class="arrow"><p>&#8250;</p></div>
+  <div class="stage">
+    <p class="stage-num">05</p>
+    <p class="stage-name">Deploy &amp; Runtime</p>
+    <p class="stage-nhi">K8s service accounts, cloud IAM roles, DB strings, Vault credentials</p>
+    <div class="stage-risk"><p>Container escape, SSRF metadata theft, over-privileged SAs</p></div>
+  </div>
+</div>
+</body>
+</html>

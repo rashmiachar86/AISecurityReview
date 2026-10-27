@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #1B2A3B; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #C0392B;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #C0392B; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: column; padding: 10pt 16pt 8pt 16pt; gap: 7pt;
+}
+.timeline-label { color: #AAB7B8; font-size: 8pt; letter-spacing: 1pt; }
+.timeline-row { display: flex; flex-direction: row; gap: 6pt; align-items: stretch; }
+.event {
+  flex: 1; background: #152232; border-top: 3pt solid #1B6CA8;
+  padding: 7pt 8pt; border-radius: 3pt;
+}
+.event-red { flex: 1; background: #2A1515; border-top: 3pt solid #C0392B; padding: 7pt 8pt; border-radius: 3pt; }
+.event-year { color: #1B6CA8; font-size: 13pt; font-weight: bold; }
+.event-year-red { color: #C0392B; font-size: 13pt; font-weight: bold; }
+.event-name { color: #FFFFFF; font-size: 8pt; font-weight: bold; }
+.event-desc { color: #AAB7B8; font-size: 7pt; margin-top: 2pt; line-height: 1.35; }
+.connector {
+  display: flex; align-items: center; padding-bottom: 14pt;
+}
+.connector p { color: #556270; font-size: 12pt; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Breach History</p>
+  <p class="header-title">Real-World NHI Breach Timeline</p>
+</div>
+<div class="body-area">
+  <p class="timeline-label">Major supply chain incidents involving NHI credential compromise</p>
+  <div class="timeline-row">
+    <div class="event-red">
+      <p class="event-year-red">2018</p>
+      <p class="event-name">event-stream</p>
+      <p class="event-desc">Compromised npm package with 2M weekly downloads; malicious payload targeting Bitcoin wallets</p>
+    </div>
+    <div class="connector"><p>&#8250;</p></div>
+    <div class="event-red">
+      <p class="event-year-red">2020</p>
+      <p class="event-name">SolarWinds</p>
+      <p class="event-desc">Build system compromise; 18,000+ orgs affected; nation-state APT29 attribution; $100M+ damages</p>
+    </div>
+    <div class="connector"><p>&#8250;</p></div>
+    <div class="event-red">
+      <p class="event-year-red">2021</p>
+      <p class="event-name">Codecov</p>
+      <p class="event-desc">Bash Uploader modified to exfiltrate CI/CD env vars; hundreds of customers affected for 2+ months</p>
+    </div>
+    <div class="connector"><p>&#8250;</p></div>
+    <div class="event-red">
+      <p class="event-year-red">2021</p>
+      <p class="event-name">ua-parser-js</p>
+      <p class="event-desc">Legitimate npm package hijacked via compromised maintainer account; cryptominer &amp; credential stealer injected</p>
+    </div>
+    <div class="connector"><p>&#8250;</p></div>
+    <div class="event">
+      <p class="event-year">2022</p>
+      <p class="event-name">GitHub OAuth</p>
+      <p class="event-desc">OAuth tokens stolen from Heroku &amp; Travis CI; private repos accessed; npm packages downloaded</p>
+    </div>
+    <div class="connector"><p>&#8250;</p></div>
+    <div class="event">
+      <p class="event-year">2023</p>
+      <p class="event-name">CircleCI</p>
+      <p class="event-desc">Employee credential compromise led to customer secrets exposure; mass rotation required across thousands of orgs</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

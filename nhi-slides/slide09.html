@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #0D1B2A; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #0D1B2A; font-family: Arial, sans-serif;
+  display: flex; flex-direction: column;
+}
+.header {
+  background: #2A1515; padding: 10pt 30pt 8pt 30pt;
+  border-bottom: 3pt solid #C0392B;
+}
+.header-title { color: #FFFFFF; font-size: 18pt; font-weight: bold; }
+.header-sub { color: #C0392B; font-size: 9pt; letter-spacing: 2pt; text-transform: uppercase; }
+.body-area {
+  flex: 1; display: flex; flex-direction: row; padding: 9pt 18pt 8pt 18pt; gap: 12pt;
+}
+.left-col { flex: 1; display: flex; flex-direction: column; gap: 6pt; }
+.right-col { flex: 1; display: flex; flex-direction: column; gap: 6pt; }
+.section-label {
+  color: #C0392B; font-size: 7.5pt; font-weight: bold;
+  letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 2pt;
+}
+.section-label-blue {
+  color: #1B6CA8; font-size: 7.5pt; font-weight: bold;
+  letter-spacing: 1.5pt; text-transform: uppercase; margin-bottom: 2pt;
+}
+.fact-box { background: #152232; border-left: 4pt solid #C0392B; padding: 6pt 10pt; border-radius: 3pt; }
+.fact-box p { color: #ECEFF1; font-size: 8pt; line-height: 1.4; }
+.fact-box strong { color: #C0392B; }
+.lesson-box { background: #1B2A3B; border-left: 4pt solid #1B6CA8; padding: 6pt 10pt; border-radius: 3pt; }
+.lesson-box ul { color: #AAB7B8; font-size: 8pt; padding-left: 12pt; }
+.lesson-box li { margin-bottom: 2pt; }
+.stat-strip {
+  display: flex; flex-direction: row; gap: 8pt;
+}
+.stat-mini { flex: 1; background: #2A1515; padding: 6pt 10pt; border-radius: 3pt; text-align: center; }
+.stat-mini p:first-child { color: #C0392B; font-size: 16pt; font-weight: bold; text-align: center; }
+.stat-mini p:last-child { color: #AAB7B8; font-size: 7.5pt; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <p class="header-sub">Case Study 1</p>
+  <p class="header-title">SolarWinds Supply Chain Attack (2020)</p>
+</div>
+<div class="body-area">
+  <div class="left-col">
+    <div class="stat-strip">
+      <div class="stat-mini">
+        <p>18,000+</p>
+        <p>Organizations impacted</p>
+      </div>
+      <div class="stat-mini">
+        <p>$100M+</p>
+        <p>Estimated damages</p>
+      </div>
+    </div>
+    <p class="section-label">What Happened</p>
+    <div class="fact-box">
+      <p><strong>Build System Compromise:</strong> Attackers (APT29 / Cozy Bear) gained access to SolarWinds' Orion build system, injecting a malicious DLL — SUNBURST — into legitimate software updates.</p>
+    </div>
+    <div class="fact-box">
+      <p><strong>Trusted Distribution:</strong> Malicious updates were digitally signed and distributed via official channels to 18,000+ customers, including multiple US federal agencies.</p>
+    </div>
+  </div>
+  <div class="right-col">
+    <p class="section-label">NHI Vulnerabilities Exploited</p>
+    <div class="lesson-box">
+      <ul>
+        <li>Compromised build system service account credentials</li>
+        <li>Weak code signing process — signed without integrity checks</li>
+        <li>Over-privileged build agent access to production pipeline</li>
+        <li>No build provenance or attestation mechanisms</li>
+        <li>Insufficient build environment isolation</li>
+      </ul>
+    </div>
+    <p class="section-label-blue">Lessons Learned</p>
+    <div class="lesson-box">
+      <ul>
+        <li>Build systems are critical infrastructure — harden aggressively</li>
+        <li>Implement SLSA provenance and build attestation</li>
+        <li>Code signing alone is insufficient without build integrity</li>
+        <li>Isolate build environments from production credentials</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>
