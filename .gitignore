@@ -11,6 +11,7 @@ htmlcov/
 .env
 .DS_Store
 .bob/tmp/
+**/.bob/mcp.json
 ~$*
 mend-oss-compliance-scanning-main*/
 terraform-enterprise-main/
