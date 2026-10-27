@@ -32,14 +32,26 @@ finds secrets that were committed and later deleted) only if it is not obvious f
 
 ## Step 2 — Run the scanner
 
-Run from the workspace root with `execute_command` (set `timeout_seconds` up to 270 for big repos):
+Run from the workspace root with `execute_command` (set `timeout_seconds` up to 270 for big repos).
+
+**Report output rule (always):** reports are HTML and live in the `reports/` folder of the workspace
+(created automatically). The scanner defaults to `--format html` and writes
+`reports/SCS-<repo>[-PR<n>].html`. Run it from the workspace root so `reports/` lands there; use
+`--reports-dir DIR` only if the user names another folder. Do not write reports to `/tmp`.
 
 ```bash
-# From workspace / global skills directory:
-python3 ~/.bob/skills/scs-security-scan/scan.py <target> --format json -o /tmp/scs-report.json
-# Or from workspace repo if present:
-python3 .bob/skills/scs-security-scan/scan.py <target> --format json -o /tmp/scs-report.json
+# HTML report -> ./reports/SCS-<repo>[-PR<n>].html
+python3 ~/.bob/skills/scs-security-scan/scan.py <target>
+# Triage copy: also write the JSON next to it (explicit path keeps it in reports/raw/)
+python3 ~/.bob/skills/scs-security-scan/scan.py <target> --format json -o reports/raw/scs-<repo>.json
 ```
+
+Run once with the default HTML output for the deliverable, and once with `--format json` into
+`reports/raw/` when you need to triage findings programmatically (Step 3).
+
+Remote clones: if HTTPS clone fails on a token-policy error, retry with SSH via env vars only
+(never change global git config):
+`GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0='url.git@github.com:.insteadOf' GIT_CONFIG_VALUE_0='https://github.com/'`.
 
 Useful flags: `--history` (scan added lines in all commits, `--max-commits N`),
 `--min-severity {info,low,medium,high,critical}`, `--category secrets|cicd|container|dependency|iac|app`,
@@ -50,8 +62,9 @@ Useful flags: `--history` (scan added lines in all commits, `--max-commits N`),
 `exclude-list.example.txt`). Pattern forms: `dir/`, `path/*.ext`, `*.ext` or a bare name. Excluded files are
 still counted for repo-structure checks (e.g. lock-file presence) but produce no findings;
 the report records the exclusions in its Scope section.
-`--format markdown`, `--format html` (self-contained report following the Step 4 structure; writes
-`SCS-ReviewReport.html` in the current directory unless `-o` is given).
+`--format html` (default; self-contained report following the Step 4 structure), `--format json`,
+`--format markdown` (printed to stdout unless `-o` is given). `-o NAME` with a bare file name is placed in
+the reports folder; `-o some/dir/file` is used as given.
 
 **Scoped scans (pull request / specific files).** Use these when the user asks to review a PR or a few files:
 
@@ -65,6 +78,11 @@ scan.py org/repo --files src/a.py ".github/workflows/*.yml" docs/   # specific f
 - `--pr` clones blobless, fetches `refs/pull/N/head`, checks it out in a temp dir and diffs it against the base
   (`--base` overrides; otherwise `gh pr view`, then origin/HEAD, `origin/main`, `origin/master`). It never touches a
   local target. It needs network access and git credentials that can read the repo.
+- **Verify the PR base branch.** If `gh` is unauthenticated the base falls back to `main`, which is wrong for
+  backport PRs targeting `release/*` branches (the scope balloons to hundreds of unrelated files). Compare the
+  scoped file count with the PR's expected size; if it looks inflated, find the real base (e.g. fewest commits
+  `git rev-list --count <branch>..<pr-head>`) and re-run with `--base origin/<branch>`.
+- A PR whose head equals the merge base has no diff (`scoped_files: 0`): report "nothing to scan", not "clean".
 - `--base REF` needs the target to be the root of a git repository with `REF` present; plain folders without `.git`
   are rejected (exit 2).
 - `--changed-lines-only` (with `--pr`/`--base`) keeps only findings on added or modified lines; repo-level (line 0)
@@ -81,7 +99,9 @@ report the error and stop — do not guess at repo contents.
 
 ## Step 3 — Triage (do not paste raw output)
 
-Read the JSON report with `read_file`. For each finding at medium or above, and for every
+Read the JSON report (`reports/raw/*.json`) with `read_file`. For PR scans, triage the
+`--changed-lines-only` results first; findings on untouched lines in changed files are pre-existing and belong
+in "Discarded or pre-existing", not in the verdict. For each finding at medium or above, and for every
 `secrets` finding:
 
 1. Open the flagged file/line with `read_file` and confirm it is real. Discard false positives
@@ -100,7 +120,9 @@ token scopes, or registry 2FA — list these as manual follow-ups).
 
 ## Step 4 — Report
 
-Write the review in this structure (inline, or save with `write_file` if the user wants a file):
+Write the triaged review in this structure. **Always save it as HTML in the `reports/` folder** (e.g.
+`reports/SCS-security-review-summary.html`, self-contained, inline CSS, no scripts) alongside the scanner's own
+per-target HTML reports, link the per-target reports from it, and give only a short summary inline:
 
 1. **Scope** — target, commit/branch scanned, whether history was included, scanner rule count
 2. **Verdict** — one sentence plus counts by severity (confirmed findings only)

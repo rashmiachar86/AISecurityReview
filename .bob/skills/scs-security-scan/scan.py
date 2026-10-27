@@ -692,9 +692,13 @@ footer{{margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;text-align
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="NHI / supply-chain security scanner for GitHub repos")
     ap.add_argument("target", nargs="?", help="local path, GitHub URL, or org/repo (optional with --pr <URL>)")
-    ap.add_argument("--format", choices=["markdown", "json", "html"], default="markdown",
-                    help="html writes SCS-ReviewReport.html unless -o is given")
-    ap.add_argument("--output", "-o", help="write report to this file instead of stdout")
+    ap.add_argument("--format", choices=["markdown", "json", "html"], default="html",
+                    help="report format (default: html). html is always written to the reports folder")
+    ap.add_argument("--output", "-o",
+                    help="report file name. A bare name is placed in the reports folder; a path with a "
+                         "directory is used as given. Default for html: SCS-<target>[-PR<n>].html")
+    ap.add_argument("--reports-dir", default="reports", metavar="DIR",
+                    help="folder for reports, created if missing (default: ./reports)")
     ap.add_argument("--min-severity", choices=R.SEVERITIES, default="low",
                     help="hide findings below this severity (default: low)")
     ap.add_argument("--fail-on", choices=R.SEVERITIES, help="exit 1 if any finding at/above this severity")
@@ -799,11 +803,20 @@ def main(argv: list[str] | None = None) -> int:
             report = json.dumps({"target": name, "meta": meta, "findings": [asdict(f) for f in findings]}, indent=2)
         elif a.format == "html":
             report = render_html(name, findings, meta)
-            a.output = a.output or "SCS-ReviewReport.html"
+            base_name = name.split(" ")[0].rstrip("/").split("/")[-1]
+            base_name = base_name[:-4] if base_name.endswith(".git") else base_name
+            slug = re.sub(r"[^A-Za-z0-9._-]+", "-", base_name).strip("-") or "report"
+            pr_part = f"-PR{info['number']}" if info else ""
+            a.output = a.output or f"SCS-{slug}{pr_part}.html"
         else:
             report = render_markdown(name, findings, meta)
         if a.output:
-            Path(a.output).write_text(report, encoding="utf-8")
+            out_path = Path(a.output)
+            if out_path.parent == Path("."):  # bare file name -> reports folder
+                out_path = Path(a.reports_dir) / out_path
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            a.output = str(out_path)
+            out_path.write_text(report, encoding="utf-8")
             print(f"report written to {a.output} ({len(findings)} findings)", file=sys.stderr)
         else:
             print(report)
