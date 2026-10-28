@@ -11,6 +11,15 @@ metadata:
     - "Run a security scan on this repo"
     - "Scan https://github.com/org/repo for leaked tokens and CI risks"
     - "Review PR 123 for supply chain security issues"
+    - "Scan org/repo and exclude all test files"
+    - "Scan ./my-repo but skip *.md, *.lock and the docs/ folder"
+    - "Scan org/repo and exclude the paths listed in my exclude-list.txt"
+    - "Scan only the .github/workflows files in org/repo for CI/CD risks"
+    - "Check this repo for NHI risks only: hardcoded secrets, leaked tokens and private keys"
+    - "Scan for software supply chain risks only: unpinned dependencies, missing lock files and unpinned GitHub Actions"
+    - "Check Dockerfiles and Terraform or Kubernetes manifests for container and IaC misconfigurations"
+    - "Scan org/repo including git history for secrets that were committed and later deleted"
+    - "Scan PR 123 in org/repo, report only the lines the PR changed, and show medium severity and above"
 ---
 
 # SCS Security Scan
