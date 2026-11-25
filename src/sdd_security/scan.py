@@ -535,11 +535,95 @@ def sort_key(f: Finding):
     return (-SEV_RANK[f.severity], f.category, f.file, f.line)
 
 
+LICENSE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    ("Apache-2.0", re.compile(r"Apache\s+License[,\s]+Version\s+2\.0|http://www\.apache\.org/licenses/LICENSE-2\.0|SPDX-License-Identifier:\s*Apache-2\.0", re.I)),
+    ("MIT", re.compile(r"MIT\s+License|Permission\s+is\s+hereby\s+granted[,\s]+free\s+of\s+charge|SPDX-License-Identifier:\s*MIT", re.I)),
+    ("BSD-3-Clause", re.compile(r"Redistribution\s+and\s+use\s+in\s+source\s+and\s+binary\s+forms.*neither\s+the\s+name\s+of|BSD\s+3-Clause|SPDX-License-Identifier:\s*BSD-3-Clause", re.I | re.S)),
+    ("BSD-2-Clause", re.compile(r"Redistribution\s+and\s+use\s+in\s+source\s+and\s+binary\s+forms.*2-clause|BSD\s+2-Clause|SPDX-License-Identifier:\s*BSD-2-Clause", re.I | re.S)),
+    ("MPL-2.0", re.compile(r"Mozilla\s+Public\s+License[,\s]+v(?:ersion)?\.?\s*2\.0|SPDX-License-Identifier:\s*MPL-2\.0", re.I)),
+    ("GPL-3.0", re.compile(r"GNU\s+GENERAL\s+PUBLIC\s+LICENSE\s+Version\s+3|GPLv3|SPDX-License-Identifier:\s*GPL-3\.0", re.I)),
+    ("GPL-2.0", re.compile(r"GNU\s+GENERAL\s+PUBLIC\s+LICENSE\s+Version\s+2|GPLv2|SPDX-License-Identifier:\s*GPL-2\.0", re.I)),
+    ("LGPL-3.0", re.compile(r"GNU\s+LESSER\s+GENERAL\s+PUBLIC\s+LICENSE\s+Version\s+3|LGPLv3|SPDX-License-Identifier:\s*LGPL-3\.0", re.I)),
+    ("LGPL-2.1", re.compile(r"GNU\s+LESSER\s+GENERAL\s+PUBLIC\s+LICENSE\s+Version\s+2\.1|LGPLv2\.1|SPDX-License-Identifier:\s*LGPL-2\.1", re.I)),
+    ("ISC", re.compile(r"ISC\s+License|Permission\s+to\s+use,\s+copy,\s+modify,\s+and/or\s+distribute\s+this\s+software\s+for\s+any\s+purpose|SPDX-License-Identifier:\s*ISC", re.I)),
+    ("BSL-1.1", re.compile(r"Business\s+Source\s+License\s+1\.1|BUSL-1\.1|SPDX-License-Identifier:\s*BSL-1\.1", re.I)),
+    ("Unlicense", re.compile(r"This\s+is\s+free\s+and\s+unencumbered\s+software\s+released\s+into\s+the\s+public\s+domain|unlicense\.org|SPDX-License-Identifier:\s*Unlicense", re.I)),
+    ("CC0-1.0", re.compile(r"CC0\s+1\.0\s+Universal|Creative\s+Commons\s+Zero|SPDX-License-Identifier:\s*CC0-1\.0", re.I)),
+]
+
+
+def detect_license(root: Path) -> str:
+    """Identify repository license type from LICENSE files or package manifests."""
+    cand_names = [
+        "LICENSE", "LICENSE.txt", "LICENSE.md", "LICENSE.rst",
+        "LICENCE", "LICENCE.txt", "LICENCE.md", "LICENCE.rst",
+        "COPYING", "COPYING.txt", "COPYING.md",
+        "LICENSE-APACHE", "LICENSE-MIT", "LICENSE-BSD", "UNLICENSE",
+    ]
+    for name in cand_names:
+        p = root / name
+        if p.is_file():
+            try:
+                text = p.read_text(encoding="utf-8", errors="replace")[:10000]
+                for lic_name, pat in LICENSE_PATTERNS:
+                    if pat.search(text):
+                        return lic_name
+                if "APACHE" in name:
+                    return "Apache-2.0"
+                if "MIT" in name:
+                    return "MIT"
+                if "BSD" in name:
+                    return "BSD"
+                first_lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+                if first_lines:
+                    first = first_lines[0]
+                    if len(first) < 60 and not first.startswith("#"):
+                        return first
+                return "Custom / See " + name
+            except Exception:
+                pass
+
+    # Check package manifests
+    pkg_json = root / "package.json"
+    if pkg_json.is_file():
+        try:
+            data = json.loads(pkg_json.read_text(encoding="utf-8", errors="replace"))
+            lic = data.get("license")
+            if isinstance(lic, str) and lic.strip():
+                return lic.strip()
+            if isinstance(lic, dict) and lic.get("type"):
+                return str(lic["type"]).strip()
+        except Exception:
+            pass
+
+    cargo_toml = root / "Cargo.toml"
+    if cargo_toml.is_file():
+        try:
+            m = re.search(r'(?m)^\s*license\s*=\s*"([^"]+)"', cargo_toml.read_text(encoding="utf-8", errors="replace"))
+            if m:
+                return m.group(1).strip()
+        except Exception:
+            pass
+
+    pyproject = root / "pyproject.toml"
+    if pyproject.is_file():
+        try:
+            txt = pyproject.read_text(encoding="utf-8", errors="replace")
+            m = re.search(r'(?m)^\s*license\s*=\s*(?:\{[^}]*text\s*=\s*"([^"]+)"|"(?!file)([^"]+)")', txt)
+            if m:
+                return (m.group(1) or m.group(2)).strip()
+        except Exception:
+            pass
+
+    return "Not detected"
+
+
 def render_markdown(name: str, findings: list[Finding], meta: dict) -> str:
     counts = Counter(f.severity for f in findings)
+    lic_str = f"  |  **License:** {meta['license']}" if meta.get("license") else ""
     lines = [f"# SCS Security Scan Report", "",
              f"- **Target:** `{name}`",
-             f"- **Files scanned:** {meta['files']}  |  **Rules:** {meta['rules']}  |  "
+             f"- **Files scanned:** {meta['files']}  |  **Rules:** {meta['rules']}{lic_str}  |  "
              f"**History scanned:** {'yes' if meta['history'] else 'no'}"
              + (f"  |  **Scope:** {meta['scope']} ({meta['scoped_files']} files)" if meta.get("scope") else ""),
              f"- **Reference:** SCSforAI.md (NHI threats in software supply chains)", "",
@@ -627,6 +711,7 @@ footer{{margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;text-align
 <h2>1. Scope</h2>
 <table>
 <tr><th>Target</th><td><code>{e(name)}</code></td></tr>
+<tr><th>License</th><td><code>{e(meta.get('license', 'Not detected'))}</code></td></tr>
 <tr><th>Files scanned</th><td>{meta['files']}</td></tr>
 <tr><th>Rules</th><td>{meta['rules']}</td></tr>
 <tr><th>Git history included</th><td>{'yes' if meta['history'] else 'no'}</td></tr>
@@ -692,9 +777,13 @@ footer{{margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;text-align
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="NHI / supply-chain security scanner for GitHub repos")
     ap.add_argument("target", nargs="?", help="local path, GitHub URL, or org/repo (optional with --pr <URL>)")
-    ap.add_argument("--format", choices=["markdown", "json", "html"], default="markdown",
-                    help="html writes SCS-ReviewReport.html unless -o is given")
-    ap.add_argument("--output", "-o", help="write report to this file instead of stdout")
+    ap.add_argument("--format", choices=["markdown", "json", "html"], default="html",
+                    help="report format (default: html). html is always written to the reports folder")
+    ap.add_argument("--output", "-o",
+                    help="report file name. A bare name is placed in the reports folder; a path with a "
+                         "directory is used as given. Default for html: SCS-<target>[-PR<n>].html")
+    ap.add_argument("--reports-dir", default="reports", metavar="DIR",
+                    help="folder for reports, created if missing (default: ./reports)")
     ap.add_argument("--min-severity", choices=R.SEVERITIES, default="low",
                     help="hide findings below this severity (default: low)")
     ap.add_argument("--fail-on", choices=R.SEVERITIES, help="exit 1 if any finding at/above this severity")
@@ -787,7 +876,8 @@ def main(argv: list[str] | None = None) -> int:
             findings = [f for f in findings if f.category in a.category]
         floor = SEV_RANK[a.min_severity]
         findings = sorted(dedupe([f for f in findings if SEV_RANK[f.severity] >= floor]), key=sort_key)
-        meta = {"files": len(rels), "rules": len(rules), "history": a.history,
+        license_type = detect_license(root)
+        meta = {"files": len(rels), "rules": len(rules), "license": license_type, "history": a.history,
                 "exclude_tests": a.exclude_tests, "exclude_patterns": patterns,
                 "excluded_files": sum(1 for r in rels if excluded(r)) if excluded else 0}
         if scoped:
@@ -799,11 +889,20 @@ def main(argv: list[str] | None = None) -> int:
             report = json.dumps({"target": name, "meta": meta, "findings": [asdict(f) for f in findings]}, indent=2)
         elif a.format == "html":
             report = render_html(name, findings, meta)
-            a.output = a.output or "SCS-ReviewReport.html"
+            base_name = name.split(" ")[0].rstrip("/").split("/")[-1]
+            base_name = base_name[:-4] if base_name.endswith(".git") else base_name
+            slug = re.sub(r"[^A-Za-z0-9._-]+", "-", base_name).strip("-") or "report"
+            pr_part = f"-PR{info['number']}" if info else ""
+            a.output = a.output or f"SCS-{slug}{pr_part}.html"
         else:
             report = render_markdown(name, findings, meta)
         if a.output:
-            Path(a.output).write_text(report, encoding="utf-8")
+            out_path = Path(a.output)
+            if out_path.parent == Path("."):  # bare file name -> reports folder
+                out_path = Path(a.reports_dir) / out_path
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            a.output = str(out_path)
+            out_path.write_text(report, encoding="utf-8")
             print(f"report written to {a.output} ({len(findings)} findings)", file=sys.stderr)
         else:
             print(report)
