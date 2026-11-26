@@ -650,12 +650,18 @@ def evaluate_production_readiness(findings: list[Finding], meta: dict) -> dict:
         lic_desc = f"{license_type} — Unclassified (Legal review required)"
 
     if lic_status == "restricted" or prod_crit or prod_high:
-        verdict = "NOT RECOMMENDED / BLOCKED FOR PRODUCTION"
+        verdict = "Not recommended for production until triaged"
         badge = "🔴 BLOCKED"
         color = "#cf222e"
+        reasons = []
+        if prod_crit or prod_high:
+            reasons.append(f"{len(prod_crit)} Critical and {len(prod_high)} High finding(s) outside test paths")
+        if lic_status == "restricted":
+            reasons.append(f"strong-copyleft license ({license_type})")
         summary = (
-            f"Blocked due to {len(prod_crit)} Critical and {len(prod_high)} High finding(s) in production code paths "
-            f"or restricted license terms ({license_type}). Remediation and approval required before deployment."
+            "Blocked automatically: " + " and ".join(reasons) + ". This is a heuristic on path names only; "
+            "a reviewer must confirm whether each finding is a real secret or a vendored/test fixture "
+            "before the verdict can be downgraded."
         )
     elif lic_status in ("review", "unknown") or prod_med:
         verdict = "CONDITIONALLY APPROVED (REVIEW REQUIRED)"
@@ -713,7 +719,7 @@ def render_markdown(name: str, findings: list[Finding], meta: dict) -> str:
              prod_eval["summary"], "",
              f"- **License Assessment:** `{meta.get('license', 'Not detected')}` &mdash; {prod_eval['license_desc']}",
              f"- **Production Code Risks:** {prod_eval['prod_crit_count']} Critical, {prod_eval['prod_high_count']} High, "
-             f"{prod_med_count := prod_eval['prod_med_count']} Medium in production paths",
+             f"{prod_eval['prod_med_count']} Medium in production paths",
              f"- **Test / Example Leads:** {prod_eval['test_total']} finding(s) confined to test files/fixtures (non-blocking)", "",
              "**Mandatory Integration & Deployment Guardrails:**", ""]
     for g in prod_eval["guardrails"]:
