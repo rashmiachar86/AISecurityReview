@@ -11,15 +11,6 @@ metadata:
     - "Run a security scan on this repo"
     - "Scan https://github.com/org/repo for leaked tokens and CI risks"
     - "Review PR 123 for supply chain security issues"
-    - "Scan org/repo and exclude all test files"
-    - "Scan ./my-repo but skip *.md, *.lock and the docs/ folder"
-    - "Scan org/repo and exclude the paths listed in my exclude-list.txt"
-    - "Scan only the .github/workflows files in org/repo for CI/CD risks"
-    - "Check this repo for NHI risks only: hardcoded secrets, leaked tokens and private keys"
-    - "Scan for software supply chain risks only: unpinned dependencies, missing lock files and unpinned GitHub Actions"
-    - "Check Dockerfiles and Terraform or Kubernetes manifests for container and IaC misconfigurations"
-    - "Scan org/repo including git history for secrets that were committed and later deleted"
-    - "Scan PR 123 in org/repo, report only the lines the PR changed, and show medium severity and above"
 ---
 
 # SCS Security Scan
@@ -41,26 +32,14 @@ finds secrets that were committed and later deleted) only if it is not obvious f
 
 ## Step 2 — Run the scanner
 
-Run from the workspace root with `execute_command` (set `timeout_seconds` up to 270 for big repos).
-
-**Report output rule (always):** reports are HTML and live in the `reports/` folder of the workspace
-(created automatically). The scanner defaults to `--format html` and writes
-`reports/SCS-<repo>[-PR<n>].html`. Run it from the workspace root so `reports/` lands there; use
-`--reports-dir DIR` only if the user names another folder. Do not write reports to `/tmp`.
+Run from the workspace root with `execute_command` (set `timeout_seconds` up to 270 for big repos):
 
 ```bash
-# HTML report -> ./reports/SCS-<repo>[-PR<n>].html
-python3 ~/.bob/skills/scs-security-scan/scan.py <target>
-# Triage copy: also write the JSON next to it (explicit path keeps it in reports/raw/)
-python3 ~/.bob/skills/scs-security-scan/scan.py <target> --format json -o reports/raw/scs-<repo>.json
+# From workspace / global skills directory:
+python3 ~/.bob/skills/scs-security-scan/scan.py <target> --format json -o /tmp/scs-report.json
+# Or from workspace repo if present:
+python3 .bob/skills/scs-security-scan/scan.py <target> --format json -o /tmp/scs-report.json
 ```
-
-Run once with the default HTML output for the deliverable, and once with `--format json` into
-`reports/raw/` when you need to triage findings programmatically (Step 3).
-
-Remote clones: if HTTPS clone fails on a token-policy error, retry with SSH via env vars only
-(never change global git config):
-`GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0='url.git@github.com:.insteadOf' GIT_CONFIG_VALUE_0='https://github.com/'`.
 
 Useful flags: `--history` (scan added lines in all commits, `--max-commits N`),
 `--min-severity {info,low,medium,high,critical}`, `--category secrets|cicd|container|dependency|iac|app`,
@@ -71,9 +50,8 @@ Useful flags: `--history` (scan added lines in all commits, `--max-commits N`),
 `exclude-list.example.txt`). Pattern forms: `dir/`, `path/*.ext`, `*.ext` or a bare name. Excluded files are
 still counted for repo-structure checks (e.g. lock-file presence) but produce no findings;
 the report records the exclusions in its Scope section.
-`--format html` (default; self-contained report following the Step 4 structure), `--format json`,
-`--format markdown` (printed to stdout unless `-o` is given). `-o NAME` with a bare file name is placed in
-the reports folder; `-o some/dir/file` is used as given.
+`--format markdown`, `--format html` (self-contained report following the Step 4 structure; writes
+`SCS-ReviewReport.html` in the current directory unless `-o` is given).
 
 **Scoped scans (pull request / specific files).** Use these when the user asks to review a PR or a few files:
 
@@ -87,11 +65,6 @@ scan.py org/repo --files src/a.py ".github/workflows/*.yml" docs/   # specific f
 - `--pr` clones blobless, fetches `refs/pull/N/head`, checks it out in a temp dir and diffs it against the base
   (`--base` overrides; otherwise `gh pr view`, then origin/HEAD, `origin/main`, `origin/master`). It never touches a
   local target. It needs network access and git credentials that can read the repo.
-- **Verify the PR base branch.** If `gh` is unauthenticated the base falls back to `main`, which is wrong for
-  backport PRs targeting `release/*` branches (the scope balloons to hundreds of unrelated files). Compare the
-  scoped file count with the PR's expected size; if it looks inflated, find the real base (e.g. fewest commits
-  `git rev-list --count <branch>..<pr-head>`) and re-run with `--base origin/<branch>`.
-- A PR whose head equals the merge base has no diff (`scoped_files: 0`): report "nothing to scan", not "clean".
 - `--base REF` needs the target to be the root of a git repository with `REF` present; plain folders without `.git`
   are rejected (exit 2).
 - `--changed-lines-only` (with `--pr`/`--base`) keeps only findings on added or modified lines; repo-level (line 0)
@@ -108,9 +81,7 @@ report the error and stop — do not guess at repo contents.
 
 ## Step 3 — Triage (do not paste raw output)
 
-Read the JSON report (`reports/raw/*.json`) with `read_file`. For PR scans, triage the
-`--changed-lines-only` results first; findings on untouched lines in changed files are pre-existing and belong
-in "Discarded or pre-existing", not in the verdict. For each finding at medium or above, and for every
+Read the JSON report with `read_file`. For each finding at medium or above, and for every
 `secrets` finding:
 
 1. Open the flagged file/line with `read_file` and confirm it is real. Discard false positives
@@ -127,21 +98,43 @@ Do not claim the repo is "secure" when nothing is found; static scanning has lim
 not check live GitHub settings such as branch protection, secret-scanning/push protection,
 token scopes, or registry 2FA — list these as manual follow-ups).
 
-## Step 4 — Report
+## Step 4 — Production Readiness & Adoption Verdict Evaluation
 
-Write the triaged review in this structure. **Always save it as HTML in the `reports/` folder** (e.g.
-`reports/SCS-security-review-summary.html`, self-contained, inline CSS, no scripts) alongside the scanner's own
-per-target HTML reports, link the per-target reports from it, and give only a short summary inline:
+When determining whether a repository, library, or dependency is ready for **production adoption**, evaluate against the following 5 dimensions:
 
-1. **Scope** — target, commit/branch scanned, whether history was included, scanner rule count
-2. **Verdict** — one sentence plus counts by severity (confirmed findings only)
-3. **Findings** — ordered critical → low. Each: title, `file:line`, why it matters (tie to the
+1. **License Compatibility:**
+   - **Permissive (Approved):** MIT, Apache-2.0, BSD-2/3-Clause, ISC, Unlicense, CC0-1.0. Safe for commercial product integration.
+   - **Weak Copyleft / Source-Available (Conditional Review):** MPL-2.0, LGPL-2.1/3.0, BSL-1.1. Requires verifying licensing notices, dynamic linking, or avoiding direct source modification.
+   - **Strict Copyleft / Proprietary / Unspecified (Blocked / Legal Review):** GPL-2.0/3.0, AGPL-3.0, Proprietary, None declared. Do not bundle into distributed proprietary products without legal clearance.
+2. **Production vs Test Path Partitioning:**
+   - Separate test fixtures (`*_test.go`, `test_*.py`, `testdata/`, mock PKI certificates, self-signed test CAs, `InsecureSkipVerify` in mock servers) from production code paths.
+   - Test-only leads are non-blocking for production adoption.
+3. **Active Production Vulnerability Triage:**
+   - Verify whether any Critical/High finding exists in **production runtime code** (e.g. unauthenticated endpoints, real hardcoded credentials, TLS verification disabled in production client transport, SSRF vulnerability).
+   - If Critical/High findings exist in production paths, mark as **Blocked / Remediation Required**.
+4. **Architectural Value & Threat Model Assessment:**
+   - Evaluate the library's intended role: Does it act as a security control (e.g. egress proxy blocking SSRF/metadata access) or introduce broad attack surface?
+5. **Mandatory Production Guardrails:**
+   - Always define explicit runtime guardrails:
+     - Deploy as a standalone service / isolated sidecar rather than vendoring test suites into product binaries.
+     - Enforce strict TLS validation at runtime; never inherit test flags.
+     - Inject secrets and mTLS certificates dynamically via secret management (HashiCorp Vault, Kubernetes Secrets).
+     - Pin releases to immutable version tags or commit SHAs and subscribe to CVE alerts.
+
+## Step 5 — Report Structure
+
+Write the review in this structure (inline, or save with `write_file` if the user wants a file):
+
+1. **Scope** — target, detected license, commit/branch scanned, whether history was included, scanner rule count
+2. **Production Readiness Verdict** — Overall status badge (`🟢 APPROVED FOR PRODUCTION`, `🟡 CONDITIONALLY APPROVED`, `🔴 BLOCKED`), license assessment, production risks vs test fixture breakdown, and mandatory deployment guardrails
+3. **Findings Breakdown** — summary table of findings by severity (Critical, High, Medium, Low, Info)
+4. **Findings Details** — ordered critical → low. Each: title, `file:line`, why it matters (tie to the
    `SCSforAI.md` section in `ref`), concrete fix, rule id
-4. **Discarded false positives** — count and reasons
-5. **Not covered by static scan** — manual checks: branch protection and required reviews,
+5. **Discarded false positives** — count and reasons (e.g. test fixtures, mock PKI certs)
+6. **Not covered by static scan** — manual checks: branch protection and required reviews,
    GitHub secret scanning + push protection, token/OAuth app scopes and expiry, package
    maintainer 2FA, registry and CI platform access reviews
-6. **Recommended next steps** — prioritised, max 5
+7. **Recommended next steps** — prioritised, max 5
 
 ## Rule categories (from SCSforAI.md)
 

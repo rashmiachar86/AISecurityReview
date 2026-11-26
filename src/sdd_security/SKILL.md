@@ -98,19 +98,43 @@ Do not claim the repo is "secure" when nothing is found; static scanning has lim
 not check live GitHub settings such as branch protection, secret-scanning/push protection,
 token scopes, or registry 2FA — list these as manual follow-ups).
 
-## Step 4 — Report
+## Step 4 — Production Readiness & Adoption Verdict Evaluation
+
+When determining whether a repository, library, or dependency is ready for **production adoption**, evaluate against the following 5 dimensions:
+
+1. **License Compatibility:**
+   - **Permissive (Approved):** MIT, Apache-2.0, BSD-2/3-Clause, ISC, Unlicense, CC0-1.0. Safe for commercial product integration.
+   - **Weak Copyleft / Source-Available (Conditional Review):** MPL-2.0, LGPL-2.1/3.0, BSL-1.1. Requires verifying licensing notices, dynamic linking, or avoiding direct source modification.
+   - **Strict Copyleft / Proprietary / Unspecified (Blocked / Legal Review):** GPL-2.0/3.0, AGPL-3.0, Proprietary, None declared. Do not bundle into distributed proprietary products without legal clearance.
+2. **Production vs Test Path Partitioning:**
+   - Separate test fixtures (`*_test.go`, `test_*.py`, `testdata/`, mock PKI certificates, self-signed test CAs, `InsecureSkipVerify` in mock servers) from production code paths.
+   - Test-only leads are non-blocking for production adoption.
+3. **Active Production Vulnerability Triage:**
+   - Verify whether any Critical/High finding exists in **production runtime code** (e.g. unauthenticated endpoints, real hardcoded credentials, TLS verification disabled in production client transport, SSRF vulnerability).
+   - If Critical/High findings exist in production paths, mark as **Blocked / Remediation Required**.
+4. **Architectural Value & Threat Model Assessment:**
+   - Evaluate the library's intended role: Does it act as a security control (e.g. egress proxy blocking SSRF/metadata access) or introduce broad attack surface?
+5. **Mandatory Production Guardrails:**
+   - Always define explicit runtime guardrails:
+     - Deploy as a standalone service / isolated sidecar rather than vendoring test suites into product binaries.
+     - Enforce strict TLS validation at runtime; never inherit test flags.
+     - Inject secrets and mTLS certificates dynamically via secret management (HashiCorp Vault, Kubernetes Secrets).
+     - Pin releases to immutable version tags or commit SHAs and subscribe to CVE alerts.
+
+## Step 5 — Report Structure
 
 Write the review in this structure (inline, or save with `write_file` if the user wants a file):
 
-1. **Scope** — target, commit/branch scanned, whether history was included, scanner rule count
-2. **Verdict** — one sentence plus counts by severity (confirmed findings only)
-3. **Findings** — ordered critical → low. Each: title, `file:line`, why it matters (tie to the
+1. **Scope** — target, detected license, commit/branch scanned, whether history was included, scanner rule count
+2. **Production Readiness Verdict** — Overall status badge (`🟢 APPROVED FOR PRODUCTION`, `🟡 CONDITIONALLY APPROVED`, `🔴 BLOCKED`), license assessment, production risks vs test fixture breakdown, and mandatory deployment guardrails
+3. **Findings Breakdown** — summary table of findings by severity (Critical, High, Medium, Low, Info)
+4. **Findings Details** — ordered critical → low. Each: title, `file:line`, why it matters (tie to the
    `SCSforAI.md` section in `ref`), concrete fix, rule id
-4. **Discarded false positives** — count and reasons
-5. **Not covered by static scan** — manual checks: branch protection and required reviews,
+5. **Discarded false positives** — count and reasons (e.g. test fixtures, mock PKI certs)
+6. **Not covered by static scan** — manual checks: branch protection and required reviews,
    GitHub secret scanning + push protection, token/OAuth app scopes and expiry, package
    maintainer 2FA, registry and CI platform access reviews
-6. **Recommended next steps** — prioritised, max 5
+7. **Recommended next steps** — prioritised, max 5
 
 ## Rule categories (from SCSforAI.md)
 

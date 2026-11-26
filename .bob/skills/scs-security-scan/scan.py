@@ -54,7 +54,8 @@ TEST_FILE_RE = re.compile(
     r"_spec\.rb$|^conftest\.py$|tests?\.(java|kt|cs)$|Tests?\.(java|kt|cs)$)", re.I)
 TEST_DIR_RE = re.compile(
     r"(^|/)(tests?|__tests__|spec|specs|fixtures?|testdata|test[-_]data|testing|e2e[\w-]*|"
-    r"integration[-_]tests?|mocks?|testutils?|test[-_]utils?|test[-_]helpers?)(/|$)", re.I)
+    r"integration[-_]tests?|mocks?|testutils?|test[-_]utils?|test[-_]helpers?|"
+    r"examples?|samples?|docs?|demo|demos)(/|$)", re.I)
 
 
 def is_test_path(rel: str) -> bool:
@@ -217,7 +218,7 @@ def scan_worktree(root: Path, rules: list[Compiled], include_tests: bool,
         if in_scope and not in_scope(rel):  # --files / --pr / --base: only selected files are scanned
             continue
         rel_l, base_l = rel.lower(), p.name.lower()
-        test_path = bool(TEST_PATH_RE.search(rel))
+        test_path = is_test_path(rel)
         if test_path and not include_tests:
             continue
 
@@ -297,7 +298,7 @@ def scan_history(root: Path, rules: list[Compiled], max_commits: int,
                 findings.append(Finding(
                     r["id"], r["title"] + " (in git history)", r["severity"], r["category"], path, 0,
                     make_evidence(body, m, True), r["fix"] + " History rewrite (git filter-repo/BFG) is required.",
-                    r["ref"], r["confidence"], "history", bool(TEST_PATH_RE.search(path)), commit[:12]))
+                    r["ref"], r["confidence"], "history", is_test_path(path), commit[:12]))
     return findings
 
 
@@ -618,8 +619,94 @@ def detect_license(root: Path) -> str:
     return "Not detected"
 
 
+PERMISSIVE_LICENSES = {"MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unlicense", "CC0-1.0"}
+WEAK_COPYLEFT_LICENSES = {"MPL-2.0", "LGPL-2.1", "LGPL-3.0", "BSL-1.1"}
+RESTRICTED_COPYLEFT_LICENSES = {"GPL-2.0", "GPL-3.0", "AGPL-3.0"}
+
+
+def evaluate_production_readiness(findings: list[Finding], meta: dict) -> dict:
+    """Evaluate production adoption readiness based on license type, production code paths vs test fixtures."""
+    license_type = meta.get("license", "Not detected")
+    
+    prod_findings = [f for f in findings if not f.test_path]
+    test_findings = [f for f in findings if f.test_path]
+    
+    prod_crit = [f for f in prod_findings if f.severity == "critical"]
+    prod_high = [f for f in prod_findings if f.severity == "high"]
+    prod_med = [f for f in prod_findings if f.severity == "medium"]
+    prod_low = [f for f in prod_findings if f.severity in ("low", "info")]
+
+    if license_type in PERMISSIVE_LICENSES:
+        lic_status = "approved"
+        lic_desc = f"{license_type} — Permissive (Approved for commercial use and integration)"
+    elif license_type in WEAK_COPYLEFT_LICENSES:
+        lic_status = "review"
+        lic_desc = f"{license_type} — Weak Copyleft / Source-Available (Permissible with license header & file isolation)"
+    elif license_type in RESTRICTED_COPYLEFT_LICENSES:
+        lic_status = "restricted"
+        lic_desc = f"{license_type} — Strong Copyleft (Restricted; requires source disclosure if distributed)"
+    else:
+        lic_status = "unknown"
+        lic_desc = f"{license_type} — Unclassified (Legal review required)"
+
+    if lic_status == "restricted" or prod_crit or prod_high:
+        verdict = "Not recommended for production until triaged"
+        badge = "🔴 BLOCKED"
+        color = "#cf222e"
+        reasons = []
+        if prod_crit or prod_high:
+            reasons.append(f"{len(prod_crit)} Critical and {len(prod_high)} High finding(s) outside test paths")
+        if lic_status == "restricted":
+            reasons.append(f"strong-copyleft license ({license_type})")
+        summary = (
+            "Blocked automatically: " + " and ".join(reasons) + ". This is a heuristic on path names only; "
+            "a reviewer must confirm whether each finding is a real secret or a vendored/test fixture "
+            "before the verdict can be downgraded."
+        )
+    elif lic_status in ("review", "unknown") or prod_med:
+        verdict = "CONDITIONALLY APPROVED (REVIEW REQUIRED)"
+        badge = "🟡 CONDITIONAL"
+        color = "#bf8700"
+        summary = (
+            f"Approved with conditions: 0 Critical/High findings in production code, but {len(prod_med)} Medium finding(s) "
+            f"or license considerations ({license_type}) require review."
+        )
+    else:
+        verdict = "APPROVED FOR PRODUCTION USE"
+        badge = "🟢 APPROVED"
+        color = "#1a7f37"
+        summary = (
+            f"Safe for production adoption: License is permissive ({license_type}), 0 confirmed Critical/High vulnerabilities "
+            f"in production code paths, and all flagged test fixtures/mocks are non-blocking."
+        )
+
+    guardrails = [
+        "Deploy as an isolated sidecar, standalone service, or bounded module rather than vendoring test packages.",
+        "Enforce strict TLS validation in production runtime; never inherit test flags like `InsecureSkipVerify`.",
+        "Inject secrets, API tokens, and mTLS certificates dynamically via secret management (Vault, Kubernetes Secrets).",
+        "Pin dependency version to an immutable release tag or commit SHA and track for upstream CVE patches.",
+    ]
+
+    return {
+        "verdict": verdict,
+        "badge": badge,
+        "color": color,
+        "summary": summary,
+        "license_status": lic_status,
+        "license_desc": lic_desc,
+        "prod_total": len(prod_findings),
+        "prod_crit_count": len(prod_crit),
+        "prod_high_count": len(prod_high),
+        "prod_med_count": len(prod_med),
+        "prod_low_count": len(prod_low),
+        "test_total": len(test_findings),
+        "guardrails": guardrails,
+    }
+
+
 def render_markdown(name: str, findings: list[Finding], meta: dict) -> str:
     counts = Counter(f.severity for f in findings)
+    prod_eval = evaluate_production_readiness(findings, meta)
     lic_str = f"  |  **License:** {meta['license']}" if meta.get("license") else ""
     lines = [f"# SCS Security Scan Report", "",
              f"- **Target:** `{name}`",
@@ -627,7 +714,17 @@ def render_markdown(name: str, findings: list[Finding], meta: dict) -> str:
              f"**History scanned:** {'yes' if meta['history'] else 'no'}"
              + (f"  |  **Scope:** {meta['scope']} ({meta['scoped_files']} files)" if meta.get("scope") else ""),
              f"- **Reference:** SCSforAI.md (NHI threats in software supply chains)", "",
-             "## Summary", "", "| Severity | Count |", "|---|---|"]
+             "## Production Readiness & Security Verdict", "",
+             f"### {prod_eval['badge']} {prod_eval['verdict']}", "",
+             prod_eval["summary"], "",
+             f"- **License Assessment:** `{meta.get('license', 'Not detected')}` &mdash; {prod_eval['license_desc']}",
+             f"- **Production Code Risks:** {prod_eval['prod_crit_count']} Critical, {prod_eval['prod_high_count']} High, "
+             f"{prod_eval['prod_med_count']} Medium in production paths",
+             f"- **Test / Example Leads:** {prod_eval['test_total']} finding(s) confined to test files/fixtures (non-blocking)", "",
+             "**Mandatory Integration & Deployment Guardrails:**", ""]
+    for g in prod_eval["guardrails"]:
+        lines.append(f"- {g}")
+    lines += ["", "## Summary", "", "| Severity | Count |", "|---|---|"]
     for s in R.SEVERITIES:
         lines.append(f"| {s} | {counts.get(s, 0)} |")
     lines.append(f"| **total** | **{len(findings)}** |")
@@ -677,6 +774,7 @@ def render_html(name: str, findings: list[Finding], meta: dict) -> str:
     from datetime import datetime, timezone
 
     counts = Counter(f.severity for f in findings)
+    prod_eval = evaluate_production_readiness(findings, meta)
     colors = {"critical": "#a1121f", "high": "#cf222e", "medium": "#bf8700", "low": "#3b82d4", "info": "#57606a"}
 
     # group related findings: same rule + same file -> one item with several lines
@@ -721,13 +819,30 @@ footer{{margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;text-align
 <tr><th>Files excluded</th><td>{meta.get('excluded_files', 0)}</td></tr>
 </table>
 
-<h2>2. Verdict</h2>
-<p>{e(verdict)}</p>
+<h2>2. Production Readiness Verdict</h2>
+<div class="card" style="border-left: 4px solid {prod_eval['color']}; padding: 14px 16px;">
+  <div style="font-size: 16px; font-weight: 700; color: {prod_eval['color']}; margin-bottom: 6px;">
+    {prod_eval['badge']} {prod_eval['verdict']}
+  </div>
+  <p style="margin: 0 0 10px; color: #1f2328;">{e(prod_eval['summary'])}</p>
+  <table>
+    <tr><th>License Assessment</th><td><code>{e(meta.get('license', 'Not detected'))}</code> &mdash; {e(prod_eval['license_desc'])}</td></tr>
+    <tr><th>Production Code Risks</th><td>{prod_eval['prod_crit_count']} Critical, {prod_eval['prod_high_count']} High, {prod_eval['prod_med_count']} Medium in production paths</td></tr>
+    <tr><th>Test &amp; Fixture Leads</th><td>{prod_eval['test_total']} finding(s) confined to test harnesses, mocks, or examples (non-blocking)</td></tr>
+    <tr><th>Scan Summary</th><td>{e(verdict)}</td></tr>
+  </table>
+  <div style="margin-top: 12px; font-weight: 600; font-size: 13px;">Mandatory Integration &amp; Deployment Guardrails:</div>
+  <ul style="margin: 4px 0 0 18px; font-size: 13px; color: #1f2328;">
+    {''.join(f'<li>{e(g)}</li>' for g in prod_eval['guardrails'])}
+  </ul>
+</div>
+
+<h2>3. Findings Breakdown</h2>
 <table><tr>{''.join(f'<th>{s}</th>' for s in R.SEVERITIES)}<th>total</th></tr>
 <tr>{''.join(f'<td>{counts.get(s, 0)}</td>' for s in R.SEVERITIES)}<td><b>{len(findings)}</b></td></tr></table>
 """]
 
-    out.append("<h2>3. Findings</h2>")
+    out.append("<h2>4. Findings Details</h2>")
     if not findings:
         out.append("<p>None.</p>")
     for (rid, file), items in sorted(groups.items(), key=lambda kv: sort_key(kv[1][0])):
@@ -751,19 +866,19 @@ footer{{margin-top:40px;padding-top:12px;border-top:1px solid #e5e7eb;text-align
             f'<div><b>Impact:</b> {e(f.impact)}</div>'
             f'<div><b>Fix:</b> {e(f.fix)}</div><div class="muted">SCSforAI.md: {e(f.ref)}</div></div>')
 
-    out.append("<h2>4. Discarded false positives</h2>"
+    out.append("<h2>5. Discarded false positives</h2>"
                "<p>Not applicable to automated output: the scanner does not discard findings. "
                "Review each finding above and record false positives here during triage.</p>")
 
     checks = MANUAL_CHECKS + ([SCOPED_CHECK] if meta.get("scope") else [])
-    out.append("<h2>5. Not covered by static scan</h2><ul>" + "".join(f"<li>{e(m)}</li>" for m in checks) + "</ul>")
+    out.append("<h2>6. Not covered by static scan</h2><ul>" + "".join(f"<li>{e(m)}</li>" for m in checks) + "</ul>")
 
     # next steps: one per rule, ranked by severity then count, max 5
     by_rule: dict[str, list[Finding]] = {}
     for f in findings:
         by_rule.setdefault(f.rule_id, []).append(f)
     ranked = sorted(by_rule.values(), key=lambda v: (-SEV_RANK[v[0].severity], -len(v)))[:5]
-    out.append("<h2>6. Recommended next steps</h2>")
+    out.append("<h2>7. Recommended next steps</h2>")
     if ranked:
         out.append("<ol>" + "".join(
             f"<li><b>{e(v[0].title)}</b> ({len(v)}, {v[0].severity}): {e(v[0].fix)}</li>" for v in ranked) + "</ol>")
